@@ -1,0 +1,22 @@
+﻿@inherits LayoutComponentBase
+
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">FinanzasHogar</a>
+    </div>
+</div>
+
+<div class="@NavMenuCssClass nav-scrollable">
+    <!-- Menú lateral vacío -->
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}
