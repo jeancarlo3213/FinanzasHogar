@@ -1,0 +1,42 @@
+﻿@page "/perfil"
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<IdentityUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+
+<h3>Perfil</h3>
+
+@if (user != null)
+{
+    <div>
+        <p>Email: @user.Email</p>
+        <p>Usuario: @user.UserName</p>
+        <p>Número de teléfono: @user.PhoneNumber</p>
+        <button @onclick="EditarPerfil">Editar Perfil</button>
+    </div>
+}
+else
+{
+    <p>Cargando...</p>
+}
+
+@code {
+    private IdentityUser user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userName = authState.User.Identity?.Name;
+
+        if (!string.IsNullOrEmpty(userName))
+        {
+            user = await UserManager.FindByNameAsync(userName);
+        }
+    }
+
+    private void EditarPerfil()
+    {
+        Navigation.NavigateTo("/editarperfil");
+    }
+}

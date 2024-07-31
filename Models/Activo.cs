@@ -1,4 +1,4 @@
-﻿namespace FinanzasFamiliares.Models
+﻿namespace FinanzasHogar.Models
 {
     public class Activo
     {
