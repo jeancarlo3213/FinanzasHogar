@@ -2,13 +2,13 @@
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
-
-<div class="buttons">
-    <button @onclick="NavigateToLogin">Iniciar Sesión</button>
-    <button @onclick="NavigateToRegister">Registrar</button>
+<div class="text-center">
+    <h1 class="display-4">Bienvenido a FinanzasHogar</h1>
+    <p class="lead">Administra tus finanzas de manera eficiente y sencilla.</p>
+    <div class="buttons">
+        <button @onclick="NavigateToLogin" class="btn btn-primary">Iniciar Sesión</button>
+        <button @onclick="NavigateToRegister" class="btn btn-primary">Registrar</button>
+    </div>
 </div>
 
 @code {

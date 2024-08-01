@@ -1,37 +1,42 @@
-﻿@page "/perfil"
-@using Microsoft.AspNetCore.Components.Authorization
+﻿@page "/Account/Perfil/{phoneNumber}"
 @using Microsoft.AspNetCore.Identity
 @inject UserManager<IdentityUser> UserManager
-@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
-<h3>Perfil</h3>
+<div class="profile-header">
+    <h1>@user?.UserName</h1>
+    <p>Email: @user?.Email</p>
+    <p>Número de teléfono: @user?.PhoneNumber</p>
+    <button @onclick="EditarPerfil" class="btn btn-success">Editar Perfil</button>
+</div>
 
-@if (user != null)
-{
-    <div>
-        <p>Email: @user.Email</p>
-        <p>Usuario: @user.UserName</p>
-        <p>Número de teléfono: @user.PhoneNumber</p>
-        <button @onclick="EditarPerfil">Editar Perfil</button>
+<div id="profile-container">
+    <div class="profile-content">
+        <p>Bienvenido a tu panel de gestión. Desde aquí puedes acceder a todas las funcionalidades de FinanzasHogar.</p>
+        <div class="profile-buttons">
+            <button class="btn btn-primary">Gestionar Activos</button>
+            <button class="btn btn-primary">Gestionar Pasivos</button>
+            <button class="btn btn-primary">Registrar Ingresos</button>
+            <button class="btn btn-primary">Registrar Gastos</button>
+        </div>
     </div>
-}
-else
-{
-    <p>Cargando...</p>
-}
+</div>
 
 @code {
+    [Parameter] public string phoneNumber { get; set; }
+
     private IdentityUser user;
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var userName = authState.User.Identity?.Name;
-
-        if (!string.IsNullOrEmpty(userName))
+        if (phoneNumber != null)
         {
-            user = await UserManager.FindByNameAsync(userName);
+            user = await UserManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
+        }
+        else
+        {
+            Navigation.NavigateTo("/login");
         }
     }
 

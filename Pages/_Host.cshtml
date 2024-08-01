@@ -11,12 +11,17 @@
     <base href="~/" />
     <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
     <link href="css/site.css" rel="stylesheet" />
+    <link href="CSSFINANzas/Finanzas.css" rel="stylesheet" /> <!-- Referencia al nuevo archivo CSS -->
     <link href="FinanzasHogar.styles.css" rel="stylesheet" />
-    <link rel="icon" type="image/png" href="favicon.png"/>
+    <link rel="icon" type="image/png" href="favicon.png" />
     <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
 </head>
 <body>
-    <component type="typeof(App)" render-mode="ServerPrerendered" />
+    <app>
+        <CascadingAuthenticationState>
+            <component type="typeof(App)" render-mode="ServerPrerendered" />
+        </CascadingAuthenticationState>
+    </app>
 
     <div id="blazor-error-ui">
         <environment include="Staging,Production">

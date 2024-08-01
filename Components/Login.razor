@@ -1,48 +1,104 @@
 ﻿@page "/login"
 @using System.ComponentModel.DataAnnotations
+@inject UserManager<IdentityUser> UserManager
 @inject SignInManager<IdentityUser> SignInManager
 @inject NavigationManager Navigation
-@using FinanzasHogar.Models
 
 <h3>Iniciar Sesión</h3>
 
-<EditForm Model="loginModel" OnValidSubmit="HandleLogin">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+@if (!isPhoneVerified)
+{
+    <EditForm Model="loginModel" OnValidSubmit="VerifyPhoneAndPassword">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
 
-    <InputText id="email" @bind-Value="loginModel.Email" placeholder="Email" />
-    <InputText id="password" type="password" @bind-Value="loginModel.Password" placeholder="Contraseña" />
-    <button type="submit">Iniciar Sesión</button>
-</EditForm>
+        <div class="form-group">
+            <label for="phoneNumber">Número de Teléfono</label>
+            <InputText id="phoneNumber" @bind-Value="loginModel.PhoneNumber" class="form-control" placeholder="Número de Teléfono" autocomplete="off" />
+        </div>
+        <div class="form-group">
+            <label for="password">Contraseña</label>
+            <InputText id="password" type="password" @bind-Value="loginModel.Password" class="form-control" placeholder="Contraseña" autocomplete="off" />
+        </div>
+        <div class="buttons">
+            <button type="submit" class="btn btn-primary" disabled="@isButtonDisabled">Verificar</button>
+        </div>
+    </EditForm>
+}
+else
+{
+    <div class="buttons">
+        <p>Teléfono y contraseña verificados.</p>
+        <button @onclick="GoToProfile" class="btn btn-success">Ir a mi perfil</button>
+    </div>
+}
 
 @if (!string.IsNullOrEmpty(errorMessage))
 {
     <div class="alert alert-danger">@errorMessage</div>
 }
 
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
 @code {
     private LoginModel loginModel = new LoginModel();
-    private string? errorMessage;
+    private string errorMessage;
+    private string successMessage;
+    private bool isPhoneVerified = false;
+    private bool isButtonDisabled = false;
 
-    private async Task HandleLogin()
+    private async Task VerifyPhoneAndPassword()
     {
         errorMessage = null;
+        successMessage = null;
+        isButtonDisabled = true;
+
         try
         {
-            var result = await SignInManager.PasswordSignInAsync(loginModel.Email, loginModel.Password, isPersistent: false, lockoutOnFailure: false);
-            if (result.Succeeded)
+            var user = await UserManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == loginModel.PhoneNumber);
+            if (user != null)
             {
-                Navigation.NavigateTo("/perfil");
+                var result = await SignInManager.CheckPasswordSignInAsync(user, loginModel.Password, lockoutOnFailure: false);
+                if (result.Succeeded)
+                {
+                    isPhoneVerified = true;
+                    successMessage = "Número de teléfono y contraseña verificados. Ahora puede ir a su perfil.";
+                }
+                else
+                {
+                    errorMessage = "Contraseña incorrecta.";
+                    isButtonDisabled = false;
+                }
             }
             else
             {
-                errorMessage = "Intento de inicio de sesión inválido.";
+                errorMessage = "El número de teléfono no está registrado.";
+                isButtonDisabled = false;
             }
         }
         catch (Exception ex)
         {
             errorMessage = $"Ocurrió un error durante el inicio de sesión: {ex.Message}";
+            isButtonDisabled = false;
         }
     }
-}
 
+    private void GoToProfile()
+    {
+        Navigation.NavigateTo($"/Account/Perfil/{loginModel.PhoneNumber}", true);
+    }
+
+    public class LoginModel
+    {
+        [Required]
+        [Phone]
+        public string PhoneNumber { get; set; }
+
+        [Required]
+        [DataType(DataType.Password)]
+        public string Password { get; set; }
+    }
+}
