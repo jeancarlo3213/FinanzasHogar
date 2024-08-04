@@ -1,0 +1,46 @@
+﻿@page "/activos/gestionar/{phoneNumber}"
+@using FinanzasHogar.Models
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<IdentityUser> UserManager
+@inject NavigationManager Navigation
+@inject ApplicationDbContext DbContext
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h3>Gestionar Activos</h3>
+
+<div>
+    <button @onclick="AgregarActivo" class="btn btn-primary">Agregar Activo</button>
+    <button @onclick="VerActivos" class="btn btn-secondary">Ver Activos</button>
+</div>
+
+@code {
+    [Parameter] public string phoneNumber { get; set; }
+
+    private IdentityUser user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (phoneNumber != null)
+        {
+            user = await UserManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
+            if (user == null)
+            {
+                Navigation.NavigateTo("/login");
+            }
+        }
+        else
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
+
+    private void AgregarActivo()
+    {
+        Navigation.NavigateTo($"/activos/agregar-activo/{phoneNumber}");
+    }
+
+    private void VerActivos()
+    {
+        Navigation.NavigateTo($"/activos/ver/{phoneNumber}");
+    }
+}

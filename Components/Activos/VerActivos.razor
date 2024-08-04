@@ -1,0 +1,184 @@
+﻿@page "/activos/ver/{phoneNumber}"
+@using FinanzasHogar.Models
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<IdentityUser> UserManager
+@inject NavigationManager Navigation
+@inject ApplicationDbContext DbContext
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h3>Mis Activos</h3>
+
+<div class="instructions">
+    <p>Use las opciones a continuación para ordenar, filtrar y buscar en su lista de activos.</p>
+</div>
+
+<div class="table-header">
+    <div>
+        <button class="btn btn-secondary" @onclick="ToggleOrdenar">Ordenar</button>
+        <button class="btn btn-secondary" @onclick="ToggleFiltrar">Filtrar</button>
+        <button class="btn btn-secondary" @onclick="Restablecer">Restablecer</button>
+        <input type="text" placeholder="Buscar..." class="form-control" style="display:inline-block; width:auto;" @bind-value="buscarTermino" @bind-value:event="oninput" />
+        <button class="btn btn-primary" @onclick="Buscar">Buscar</button>
+    </div>
+</div>
+
+@if (mostrarOrdenar)
+{
+    <div class="ordenar-opciones">
+        <label for="ordenarPor">Ordenar por:</label>
+        <select id="ordenarPor" @bind="ordenarPor" class="form-control" style="display:inline-block; width:auto;">
+            <option value="tipo">Tipo</option>
+            <option value="fechaAdquisicionAsc">Fecha de Adquisición (Ascendente)</option>
+            <option value="fechaAdquisicionDesc">Fecha de Adquisición (Descendente)</option>
+            <option value="valorAsc">Valor (Ascendente)</option>
+            <option value="valorDesc">Valor (Descendente)</option>
+        </select>
+        <button class="btn btn-secondary" @onclick="Ordenar">Aplicar Orden</button>
+    </div>
+}
+
+@if (mostrarFiltrar)
+{
+    <div class="filtrar-opciones">
+        <label for="filtrarCondicion">Filtrar por Condición:</label>
+        <select id="filtrarCondicion" @bind="filtrarCondicion" class="form-control" style="display:inline-block; width:auto;">
+            <option value="">Todas</option>
+            <option value="Nuevo">Nuevo</option>
+            <option value="Excelente">Excelente</option>
+            <option value="Bueno">Bueno</option>
+            <option value="Regular">Regular</option>
+            <option value="Malo">Malo</option>
+        </select>
+        <button class="btn btn-secondary" @onclick="Filtrar">Aplicar Filtro</button>
+
+        <label for="filtrarValorMin">Filtrar por Valor:</label>
+        <input type="number" id="filtrarValorMin" placeholder="Mínimo" class="form-control" style="display:inline-block; width:auto;" @bind="filtrarValorMin" />
+        <input type="number" id="filtrarValorMax" placeholder="Máximo" class="form-control" style="display:inline-block; width:auto;" @bind="filtrarValorMax" />
+        <button class="btn btn-secondary" @onclick="FiltrarPorValor">Aplicar Filtro por Valor</button>
+    </div>
+}
+
+@if (activosFiltrados != null && activosFiltrados.Any())
+{
+    <ul class="activos-list">
+        @foreach (var activo in activosFiltrados)
+        {
+            <li>
+                <button class="btn btn-link activo-button" @onclick="() => VerDetalleActivo(activo.Id)">
+                    @activo.Tipo: @activo.Detalle
+                </button>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>No hay activos registrados.</p>
+}
+
+@code {
+    [Parameter] public string phoneNumber { get; set; }
+
+    private IdentityUser user;
+    private List<Activo> activos;
+    private List<Activo> activosFiltrados;
+    private string buscarTermino;
+    private string ordenarPor = "tipo";
+    private string filtrarCondicion = "";
+    private decimal? filtrarValorMin;
+    private decimal? filtrarValorMax;
+    private bool mostrarOrdenar = false;
+    private bool mostrarFiltrar = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (phoneNumber != null)
+        {
+            user = await UserManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
+            if (user != null)
+            {
+                activos = await DbContext.Activos.Where(a => a.UsuarioId == user.Id).ToListAsync();
+                activosFiltrados = activos;
+            }
+            else
+            {
+                Navigation.NavigateTo("/login");
+            }
+        }
+        else
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
+
+    private void VerDetalleActivo(int id)
+    {
+        Navigation.NavigateTo($"/activos/ver-detalle/{id}");
+    }
+
+    private void ToggleOrdenar()
+    {
+        mostrarOrdenar = !mostrarOrdenar;
+        mostrarFiltrar = false;
+    }
+
+    private void ToggleFiltrar()
+    {
+        mostrarFiltrar = !mostrarFiltrar;
+        mostrarOrdenar = false;
+    }
+
+    private void Ordenar()
+    {
+        activosFiltrados = ordenarPor switch
+        {
+            "fechaAdquisicionAsc" => activosFiltrados.OrderBy(a => a.FechaAdquisicion).ToList(),
+            "fechaAdquisicionDesc" => activosFiltrados.OrderByDescending(a => a.FechaAdquisicion).ToList(),
+            "valorAsc" => activosFiltrados.OrderBy(a => a.Valor).ToList(),
+            "valorDesc" => activosFiltrados.OrderByDescending(a => a.Valor).ToList(),
+            _ => activosFiltrados.OrderBy(a => a.Tipo).ToList()
+        };
+        mostrarOrdenar = false;
+    }
+
+    private void Filtrar()
+    {
+        activosFiltrados = string.IsNullOrEmpty(filtrarCondicion)
+            ? activos
+            : activos.Where(a => a.Condicion == filtrarCondicion).ToList();
+        mostrarFiltrar = false;
+    }
+
+    private void FiltrarPorValor()
+    {
+        activosFiltrados = activos.Where(a => (!filtrarValorMin.HasValue || a.Valor >= filtrarValorMin.Value) &&
+                                               (!filtrarValorMax.HasValue || a.Valor <= filtrarValorMax.Value)).ToList();
+        mostrarFiltrar = false;
+    }
+
+    private void Buscar()
+    {
+        if (!string.IsNullOrEmpty(buscarTermino))
+        {
+            activosFiltrados = activos.Where(a => a.Detalle.Contains(buscarTermino, StringComparison.OrdinalIgnoreCase) ||
+                                                   a.Descripcion.Contains(buscarTermino, StringComparison.OrdinalIgnoreCase) ||
+                                                   a.Tipo.Contains(buscarTermino, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+        else
+        {
+            activosFiltrados = activos;
+        }
+    }
+
+    private void Restablecer()
+    {
+        activosFiltrados = activos;
+        buscarTermino = "";
+        ordenarPor = "tipo";
+        filtrarCondicion = "";
+        filtrarValorMin = null;
+        filtrarValorMax = null;
+        mostrarOrdenar = false;
+        mostrarFiltrar = false;
+    }
+}

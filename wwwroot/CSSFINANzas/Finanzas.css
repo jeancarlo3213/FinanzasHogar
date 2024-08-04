@@ -102,3 +102,114 @@ form {
     .profile-buttons .btn {
         margin: 10px;
     }
+
+.activo-detalle {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    text-align: left;
+}
+
+    .activo-detalle p {
+        font-size: 18px;
+        margin: 10px 0;
+    }
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+    ul li {
+        margin: 10px 0;
+    }
+
+.btn-link {
+    color: #007bff;
+    text-decoration: none;
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+}
+
+    .btn-link:hover {
+        text-decoration: underline;
+    }
+
+.instructions {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #ff6600;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+    .table-header .btn {
+        margin-left: 10px;
+    }
+
+.ordenar-opciones, .filtrar-opciones {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+    .ordenar-opciones .form-group, .filtrar-opciones .form-group {
+        display: inline-block;
+        margin-right: 10px;
+    }
+
+.activos-list {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    list-style-type: none;
+    padding-left: 0;
+}
+
+    .activos-list li {
+        margin: 10px 0;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+    }
+
+        .activos-list li button {
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            color: #007bff;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+            .activos-list li button:hover {
+                background-color: #e9ecef;
+            }

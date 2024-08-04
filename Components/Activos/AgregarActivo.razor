@@ -1,0 +1,119 @@
+﻿@page "/activos/agregar-activo/{phoneNumber}"
+@using FinanzasHogar.Models
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<IdentityUser> UserManager
+@inject NavigationManager Navigation
+@inject ApplicationDbContext DbContext
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h3>Agregar Activo</h3>
+
+<div class="instructions">
+    Por favor, complete este formulario para agregar un nuevo activo.
+</div>
+
+<EditForm Model="nuevoActivo" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="tipo">Tipo</label>
+        <InputSelect id="tipo" @bind-Value="nuevoActivo.Tipo" class="form-control">
+            <option value="">Seleccione un tipo</option>
+            @foreach (var tipo in TipoBien.Tipos)
+            {
+                <option value="@tipo">@tipo</option>
+            }
+        </InputSelect>
+        <small class="form-text text-muted">Seleccione el tipo de activo, como inmueble, vehículo, efectivo, etc.</small>
+    </div>
+    <div class="form-group">
+        <label for="detalle">Detalle</label>
+        <InputText id="detalle" @bind-Value="nuevoActivo.Detalle" class="form-control" />
+        <small class="form-text text-muted">Ingrese un detalle específico del activo, como "Casa", "Carro", "Depósito bancario", etc.</small>
+    </div>
+    <div class="form-group">
+        <label for="descripcion">Descripción</label>
+        <InputTextArea id="descripcion" @bind-Value="nuevoActivo.Descripcion" class="form-control" />
+        <small class="form-text text-muted">Proporcione una descripción adicional del activo, como características o detalles importantes.</small>
+    </div>
+    <div class="form-group">
+        <label for="ubicacion">Ubicación</label>
+        <InputText id="ubicacion" @bind-Value="nuevoActivo.Ubicacion" class="form-control" />
+        <small class="form-text text-muted">Indique la ubicación del activo, como una dirección para inmuebles o un lugar de almacenamiento.</small>
+    </div>
+    <div class="form-group">
+        <label for="fechaAdquisicion">Fecha de Adquisición</label>
+        <InputDate id="fechaAdquisicion" @bind-Value="nuevoActivo.FechaAdquisicion" class="form-control" />
+        <small class="form-text text-muted">Seleccione la fecha en que adquirió el activo.</small>
+    </div>
+    <div class="form-group">
+        <label for="condicion">Condición</label>
+        <InputSelect id="condicion" @bind-Value="nuevoActivo.Condicion" class="form-control">
+            <option value="">Seleccione una condición</option>
+            <option value="Nuevo">Nuevo</option>
+            <option value="Excelente">Excelente</option>
+            <option value="Bueno">Bueno</option>
+            <option value="Regular">Regular</option>
+            <option value="Malo">Malo</option>
+        </InputSelect>
+        <small class="form-text text-muted">Seleccione la condición actual del activo.</small>
+    </div>
+    <div class="form-group">
+        <label for="valor">Valor</label>
+        <InputNumber id="valor" @bind-Value="nuevoActivo.Valor" class="form-control" />
+        <small class="form-text text-muted">Ingrese el valor monetario del activo.</small>
+    </div>
+    <button type="submit" class="btn btn-primary">Agregar</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
+@code {
+    [Parameter] public string phoneNumber { get; set; }
+
+    private Activo nuevoActivo = new Activo();
+    private string errorMessage;
+    private string successMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = await UserManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
+
+        if (user == null)
+        {
+            errorMessage = "Usuario no autenticado.";
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        nuevoActivo.UsuarioId = user.Id;
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        errorMessage = null;
+        successMessage = null;
+
+        try
+        {
+            DbContext.Activos.Add(nuevoActivo);
+            await DbContext.SaveChangesAsync();
+            successMessage = "Activo agregado exitosamente.";
+            nuevoActivo = new Activo(); // Limpiar el formulario
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Ocurrió un error al agregar el activo: {ex.Message}";
+        }
+    }
+}
+

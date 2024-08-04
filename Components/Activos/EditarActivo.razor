@@ -1,0 +1,102 @@
+﻿@page "/activos/editar/{id:int}"
+@using FinanzasHogar.Models
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<IdentityUser> UserManager
+@inject NavigationManager Navigation
+@inject ApplicationDbContext DbContext
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h3>Editar Activo</h3>
+
+@if (activo != null)
+{
+    <EditForm Model="activo" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label for="tipo">Tipo</label>
+            <InputSelect id="tipo" @bind-Value="activo.Tipo" class="form-control">
+                <option value="">Seleccione un tipo</option>
+                @foreach (var tipo in TipoBien.Tipos)
+                {
+                    <option value="@tipo">@tipo</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="form-group">
+            <label for="detalle">Detalle</label>
+            <InputText id="detalle" @bind-Value="activo.Detalle" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label for="descripcion">Descripción</label>
+            <InputTextArea id="descripcion" @bind-Value="activo.Descripcion" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label for="ubicacion">Ubicación</label>
+            <InputText id="ubicacion" @bind-Value="activo.Ubicacion" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label for="fechaAdquisicion">Fecha de Adquisición</label>
+            <InputDate id="fechaAdquisicion" @bind-Value="activo.FechaAdquisicion" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label for="condicion">Condición</label>
+            <InputSelect id="condicion" @bind-Value="activo.Condicion" class="form-control">
+                <option value="Nuevo">Nuevo</option>
+                <option value="Excelente">Excelente</option>
+                <option value="Bueno">Bueno</option>
+                <option value="Regular">Regular</option>
+                <option value="Malo">Malo</option>
+            </InputSelect>
+        </div>
+        <div class="form-group">
+            <label for="valor">Valor</label>
+            <InputNumber id="valor" @bind-Value="activo.Valor" class="form-control" />
+        </div>
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+    </EditForm>
+}
+else
+{
+    <p>Cargando detalles del activo...</p>
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
+@code {
+    [Parameter] public int id { get; set; }
+
+    private Activo activo;
+    private string errorMessage;
+    private string successMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        activo = await DbContext.Activos.FindAsync(id);
+        if (activo == null)
+        {
+            Navigation.NavigateTo("/activos/ver");
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            await DbContext.SaveChangesAsync();
+            successMessage = "Activo actualizado exitosamente.";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Ocurrió un error al actualizar el activo: {ex.Message}";
+        }
+    }
+}

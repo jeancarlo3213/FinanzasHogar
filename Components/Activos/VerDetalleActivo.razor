@@ -1,0 +1,94 @@
+﻿@page "/activos/ver-detalle/{id:int}"
+@using FinanzasHogar.Models
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<IdentityUser> UserManager
+@inject NavigationManager Navigation
+@inject ApplicationDbContext DbContext
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h3>Detalle del Activo</h3>
+
+@if (activo != null)
+{
+    <div class="activo-detalle">
+        <p><strong>Tipo:</strong> @activo.Tipo</p>
+        <p><strong>Detalle:</strong> @activo.Detalle</p>
+        <p><strong>Descripción:</strong> @activo.Descripcion</p>
+        <p><strong>Ubicación:</strong> @activo.Ubicacion</p>
+        <p><strong>Fecha de Adquisición:</strong> @activo.FechaAdquisicion.ToString("dd/MM/yyyy")</p>
+        <p><strong>Condición:</strong> @activo.Condicion</p>
+        <p><strong>Valor:</strong> @activo.Valor</p>
+        <button class="btn btn-warning" @onclick="EditarActivo">Editar Activo</button>
+        <button class="btn btn-danger" @onclick="MostrarConfirmacion">Eliminar Activo</button>
+    </div>
+}
+
+@if (mostrarConfirmacion)
+{
+    <div class="confirmacion">
+        <p>¿Está seguro de que desea eliminar este activo?</p>
+        <button class="btn btn-danger" @onclick="EliminarActivo">Sí</button>
+        <button class="btn btn-secondary" @onclick="OcultarConfirmacion">No</button>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(mensajeError))
+{
+    <div class="alert alert-danger">@mensajeError</div>
+}
+@if (!string.IsNullOrEmpty(mensajeExito))
+{
+    <div class="alert alert-success">@mensajeExito</div>
+}
+
+@code {
+    [Parameter] public int id { get; set; }
+
+    private Activo activo;
+    private bool mostrarConfirmacion = false;
+    private string mensajeError;
+    private string mensajeExito;
+
+    protected override async Task OnInitializedAsync()
+    {
+        activo = await DbContext.Activos.FindAsync(id);
+        if (activo == null)
+        {
+            Navigation.NavigateTo("/activos/ver");
+        }
+    }
+
+    private void EditarActivo()
+    {
+        Navigation.NavigateTo($"/activos/editar-activo/{id}");
+    }
+
+    private void MostrarConfirmacion()
+    {
+        mostrarConfirmacion = true;
+    }
+
+    private void OcultarConfirmacion()
+    {
+        mostrarConfirmacion = false;
+    }
+
+    private async Task EliminarActivo()
+    {
+        try
+        {
+            if (activo != null)
+            {
+                DbContext.Activos.Remove(activo);
+                await DbContext.SaveChangesAsync();
+                mensajeExito = "Activo eliminado exitosamente.";
+                Navigation.NavigateTo($"/activos/ver/{activo.UsuarioId}");
+            }
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Ocurrió un error al eliminar el activo: {ex.Message}";
+        }
+    }
+}
+
