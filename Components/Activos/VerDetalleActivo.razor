@@ -1,4 +1,4 @@
-﻿@page "/activos/ver-detalle/{id:int}"
+﻿@page "/activos/ver-detalle/{id:int}/{phoneNumber}"
 @using FinanzasHogar.Models
 @using Microsoft.AspNetCore.Identity
 @inject UserManager<IdentityUser> UserManager
@@ -43,6 +43,7 @@
 
 @code {
     [Parameter] public int id { get; set; }
+    [Parameter] public string phoneNumber { get; set; }
 
     private Activo activo;
     private bool mostrarConfirmacion = false;
@@ -54,13 +55,13 @@
         activo = await DbContext.Activos.FindAsync(id);
         if (activo == null)
         {
-            Navigation.NavigateTo("/activos/ver");
+            Navigation.NavigateTo($"/activos/ver/{phoneNumber}");
         }
     }
 
     private void EditarActivo()
     {
-        Navigation.NavigateTo($"/activos/editar-activo/{id}");
+        Navigation.NavigateTo($"/activos/editar-activo/{id}?phoneNumber={phoneNumber}");
     }
 
     private void MostrarConfirmacion()
@@ -82,7 +83,7 @@
                 DbContext.Activos.Remove(activo);
                 await DbContext.SaveChangesAsync();
                 mensajeExito = "Activo eliminado exitosamente.";
-                Navigation.NavigateTo($"/activos/ver/{activo.UsuarioId}");
+                Navigation.NavigateTo($"/activos/ver/{phoneNumber}");
             }
         }
         catch (Exception ex)
@@ -91,4 +92,3 @@
         }
     }
 }
-
