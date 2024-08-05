@@ -8,6 +8,10 @@
 
 <h3>Editar Activo</h3>
 
+<div class="instructions">
+    Por favor, edite los campos necesarios. Los campos marcados con * son obligatorios.
+</div>
+
 @if (activo != null)
 {
     <EditForm Model="activo" OnValidSubmit="HandleValidSubmit">
@@ -16,43 +20,47 @@
 
         <div class="form-group">
             <label for="tipo">Tipo</label>
-            <InputSelect id="tipo" @bind-Value="activo.Tipo" class="form-control">
-                <option value="">Seleccione un tipo</option>
-                @foreach (var tipo in TipoBien.Tipos)
-                {
-                    <option value="@tipo">@tipo</option>
-                }
-            </InputSelect>
+            <InputText id="tipo" @bind-Value="activo.Tipo" class="form-control" disabled />
+            <small class="form-text text-muted">El tipo no puede ser editado.</small>
         </div>
         <div class="form-group">
             <label for="detalle">Detalle</label>
-            <InputText id="detalle" @bind-Value="activo.Detalle" class="form-control" />
+            <InputText id="detalle" @bind-Value="activo.Detalle" class="form-control" disabled />
+            <small class="form-text text-muted">El detalle no puede ser editado.</small>
         </div>
         <div class="form-group">
             <label for="descripcion">Descripción</label>
             <InputTextArea id="descripcion" @bind-Value="activo.Descripcion" class="form-control" />
+            <small class="form-text text-muted">Proporcione una descripción adicional del activo, como características o detalles importantes.</small>
         </div>
         <div class="form-group">
             <label for="ubicacion">Ubicación</label>
-            <InputText id="ubicacion" @bind-Value="activo.Ubicacion" class="form-control" />
+            <InputText id="ubicacion" @bind-Value="activo.Ubicacion" class="form-control" disabled />
+            <small class="form-text text-muted">La ubicación no puede ser editada.</small>
         </div>
         <div class="form-group">
             <label for="fechaAdquisicion">Fecha de Adquisición</label>
-            <InputDate id="fechaAdquisicion" @bind-Value="activo.FechaAdquisicion" class="form-control" />
+            <InputDate id="fechaAdquisicion" @bind-Value="activo.FechaAdquisicion" class="form-control" disabled />
+            <small class="form-text text-muted">La fecha de adquisición no puede ser editada.</small>
         </div>
         <div class="form-group">
-            <label for="condicion">Condición</label>
+            <label for="condicion">Condición *</label>
             <InputSelect id="condicion" @bind-Value="activo.Condicion" class="form-control">
+                <option value="">Seleccione una condición</option>
                 <option value="Nuevo">Nuevo</option>
                 <option value="Excelente">Excelente</option>
                 <option value="Bueno">Bueno</option>
                 <option value="Regular">Regular</option>
                 <option value="Malo">Malo</option>
             </InputSelect>
+            <small class="form-text text-muted">Seleccione la condición actual del activo.</small>
+            <ValidationMessage For="() => activo.Condicion" />
         </div>
         <div class="form-group">
-            <label for="valor">Valor</label>
+            <label for="valor">Valor *</label>
             <InputNumber id="valor" @bind-Value="activo.Valor" class="form-control" />
+            <small class="form-text text-muted">Ingrese el valor monetario del activo.</small>
+            <ValidationMessage For="() => activo.Valor" />
         </div>
         <button type="submit" class="btn btn-primary">Guardar Cambios</button>
     </EditForm>
@@ -68,7 +76,12 @@ else
 }
 @if (!string.IsNullOrEmpty(successMessage))
 {
-    <div class="alert alert-success">@successMessage</div>
+    <div class="fullscreen-alert">
+        <div class="alert alert-success">
+            @successMessage
+            <button type="button" class="btn btn-light" @onclick="CloseAlert">Aceptar</button>
+        </div>
+    </div>
 }
 
 @code {
@@ -98,5 +111,10 @@ else
         {
             errorMessage = $"Ocurrió un error al actualizar el activo: {ex.Message}";
         }
+    }
+
+    private void CloseAlert()
+    {
+        successMessage = null;
     }
 }

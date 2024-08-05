@@ -35,5 +35,14 @@
     </div>
 
     <script src="_framework/blazor.server.js"></script>
+    <script>
+        function preventBackNavigation() {
+            window.history.pushState(null, "", window.location.href);
+            window.onpopstate = function () {
+                history.go(1);
+                window.location.href = "/activos/ver";
+            };
+        }
+    </script>
 </body>
 </html>
