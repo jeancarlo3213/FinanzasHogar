@@ -72,13 +72,19 @@
     <button type="submit" class="btn btn-primary">Agregar</button>
 </EditForm>
 
+@if (showSuccessMessage)
+{
+    <div class="fullscreen-alert">
+        <div class="alert">
+            <span>Activo agregado exitosamente.</span>
+            <button class="btn" @onclick="HideSuccessMessage">Aceptar</button>
+        </div>
+    </div>
+}
+
 @if (!string.IsNullOrEmpty(errorMessage))
 {
     <div class="alert alert-danger">@errorMessage</div>
-}
-@if (!string.IsNullOrEmpty(successMessage))
-{
-    <div class="alert alert-success">@successMessage</div>
 }
 
 @code {
@@ -86,7 +92,7 @@
 
     private Activo nuevoActivo = new Activo();
     private string errorMessage;
-    private string successMessage;
+    private bool showSuccessMessage = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -107,13 +113,12 @@
     private async Task HandleValidSubmit()
     {
         errorMessage = null;
-        successMessage = null;
 
         try
         {
             DbContext.Activos.Add(nuevoActivo);
             await DbContext.SaveChangesAsync();
-            successMessage = "Activo agregado exitosamente.";
+            showSuccessMessage = true;
             nuevoActivo = new Activo(); // Limpiar el formulario
             nuevoActivo.FechaAdquisicion = DateTime.Now; // Inicializar con la fecha actual
         }
@@ -121,5 +126,10 @@
         {
             errorMessage = $"Ocurrió un error al agregar el activo: {ex.Message}";
         }
+    }
+
+    private void HideSuccessMessage()
+    {
+        showSuccessMessage = false;
     }
 }

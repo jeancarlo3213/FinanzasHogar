@@ -1,0 +1,89 @@
+﻿@page "/activos/sumar/{phoneNumber}"
+@using FinanzasHogar.Models
+@inject ApplicationDbContext DbContext
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager<IdentityUser> UserManager
+
+<h3>Sumar Activos</h3>
+
+<div class="instructions">
+    Seleccione los tipos de activos que desea sumar y haga clic en "Calcular".
+</div>
+
+<div class="form-group">
+    <label>Tipos de Activos</label>
+    <div>
+        @foreach (var tipo in TipoBien.Tipos)
+        {
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="@tipo" @onchange="(e) => UpdateSelectedTipos(e, tipo)">
+                <label class="form-check-label" for="@tipo">@tipo</label>
+            </div>
+        }
+    </div>
+    <small class="form-text text-muted">Seleccione uno o más tipos de activos.</small>
+</div>
+
+<button class="btn btn-primary" @onclick="CalcularSuma">Calcular</button>
+
+@if (mostrarResultado)
+{
+    <div class="alert alert-info mt-3">
+        <p>Total de Activos Seleccionados: @sumaTotal</p>
+    </div>
+}
+
+@code {
+    [Parameter] public string phoneNumber { get; set; }
+
+    private List<string> selectedTipos = new List<string>();
+    private decimal sumaTotal = 0;
+    private bool mostrarResultado = false;
+    private IdentityUser user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        user = await UserManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
+
+        if (user == null)
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+    }
+
+    private void UpdateSelectedTipos(ChangeEventArgs e, string tipo)
+    {
+        var isChecked = (bool)e.Value;
+        if (isChecked)
+        {
+            selectedTipos.Add(tipo);
+        }
+        else
+        {
+            selectedTipos.Remove(tipo);
+        }
+    }
+
+    private void CalcularSuma()
+    {
+        mostrarResultado = false;
+        sumaTotal = 0;
+
+        if (selectedTipos.Count > 0)
+        {
+            var activos = DbContext.Activos.Where(a => selectedTipos.Contains(a.Tipo) && a.UsuarioId == user.Id);
+            sumaTotal = activos.Sum(a => a.Valor);
+        }
+        else
+        {
+            var activos = DbContext.Activos.Where(a => a.UsuarioId == user.Id);
+            sumaTotal = activos.Sum(a => a.Valor);
+        }
+
+        mostrarResultado = true;
+    }
+}
+
