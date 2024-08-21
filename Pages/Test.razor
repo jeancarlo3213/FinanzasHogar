@@ -1,0 +1,27 @@
+﻿@page "/Test"
+@using MudBlazor
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-8">
+    <MudPaper Class="pa-4">
+        <MudText Typo="Typo.h5" Class="mb-4">Test de Verificación</MudText>
+
+        <MudButton OnClick="Verify" Variant="Variant.Filled" Color="Color.Primary" Class="mt-4">Verificar</MudButton>
+
+        @if (!string.IsNullOrEmpty(message))
+        {
+            <MudAlert Severity="Severity.Success" Class="mt-2">@message</MudAlert>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private string message;
+
+    private void Verify()
+    {
+        Console.WriteLine("Botón Verificar presionado");
+        message = "Verificación exitosa.";
+        Console.WriteLine(message);
+        StateHasChanged();
+    }
+}

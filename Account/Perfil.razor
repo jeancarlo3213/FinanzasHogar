@@ -16,7 +16,7 @@
         <p>Bienvenido a tu panel de gestión. Desde aquí puedes acceder a todas las funcionalidades de FinanzasHogar.</p>
         <div class="profile-buttons">
             <button class="btn btn-primary" @onclick="GestionarActivos">Gestionar Activos</button>
-            <button class="btn btn-primary">Gestionar Pasivos</button>
+            <button class="btn btn-primary" @onclick="GestionarPasivos">Gestionar Pasivos</button>
             <button class="btn btn-primary">Registrar Ingresos</button>
             <button class="btn btn-primary">Registrar Gastos</button>
         </div>
@@ -42,11 +42,16 @@
 
     private void EditarPerfil()
     {
-        Navigation.NavigateTo("/editarperfil");
+        Navigation.NavigateTo("/Account/EditarPerfil/" + phoneNumber);
     }
 
     private void GestionarActivos()
     {
         Navigation.NavigateTo($"/activos/gestionar/{phoneNumber}");
+    }
+
+    private void GestionarPasivos()
+    {
+        Navigation.NavigateTo($"/pasivos/gestionar/{phoneNumber}");
     }
 }

@@ -1,0 +1,167 @@
+﻿@page "/pasivos/ver/{phoneNumber}"
+@using FinanzasHogar.Models
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<IdentityUser> UserManager
+@inject NavigationManager Navigation
+@inject ApplicationDbContext DbContext
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h3>Mis Pasivos</h3>
+
+<div class="instructions">
+    <p>Use las opciones a continuación para ordenar, filtrar y buscar en su lista de pasivos.</p>
+</div>
+
+<div class="table-header">
+    <div>
+        <button class="btn btn-secondary" @onclick="ToggleOrdenar">Ordenar</button>
+        <button class="btn btn-secondary" @onclick="ToggleFiltrar">Filtrar</button>
+        <button class="btn btn-secondary" @onclick="Restablecer">Restablecer</button>
+        <input type="text" placeholder="Buscar..." class="form-control" style="display:inline-block; width:auto;" @bind-value="buscarTermino" @bind-value:event="oninput" />
+        <button class="btn btn-primary" @onclick="Buscar">Buscar</button>
+    </div>
+</div>
+
+<div class="buttons">
+    <NavLink class="btn btn-primary" href="@($"/pasivos/sumar/{phoneNumber}")">Sumar Pasivos</NavLink>
+</div>
+
+@if (mostrarOrdenar)
+{
+    <div class="ordenar-opciones">
+        <label for="ordenarPor">Ordenar por:</label>
+        <select id="ordenarPor" @bind="ordenarPor" class="form-control" style="display:inline-block; width:auto;">
+            <option value="tipo">Tipo</option>
+            <option value="fechaVencimientoAsc">Fecha de Vencimiento (Ascendente)</option>
+            <option value="fechaVencimientoDesc">Fecha de Vencimiento (Descendente)</option>
+            <option value="montoAsc">Monto (Ascendente)</option>
+            <option value="montoDesc">Monto (Descendente)</option>
+        </select>
+        <button class="btn btn-secondary" @onclick="Ordenar">Aplicar Orden</button>
+    </div>
+}
+
+@if (mostrarFiltrar)
+{
+    <div class="filtrar-opciones">
+        <label for="filtrarMontoMin">Filtrar por Monto:</label>
+        <input type="number" id="filtrarMontoMin" placeholder="Mínimo" class="form-control" style="display:inline-block; width:auto;" @bind="filtrarMontoMin" />
+        <input type="number" id="filtrarMontoMax" placeholder="Máximo" class="form-control" style="display:inline-block; width:auto;" @bind="filtrarMontoMax" />
+        <button class="btn btn-secondary" @onclick="FiltrarPorMonto">Aplicar Filtro por Monto</button>
+    </div>
+}
+
+@if (pasivosFiltrados != null && pasivosFiltrados.Any())
+{
+    <ul class="pasivos-list">
+        @foreach (var pasivo in pasivosFiltrados)
+        {
+            <li>
+                <button class="btn btn-link pasivo-button" @onclick="() => VerDetallePasivo(pasivo.Id)">
+                    @pasivo.Tipo: @pasivo.Detalle - @pasivo.Monto.ToString("C")
+                </button>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>No hay pasivos registrados.</p>
+}
+
+@code {
+    [Parameter] public string phoneNumber { get; set; }
+
+    private IdentityUser user;
+    private List<Pasivo> pasivos;
+    private List<Pasivo> pasivosFiltrados;
+    private string buscarTermino;
+    private string ordenarPor = "tipo";
+    private decimal? filtrarMontoMin;
+    private decimal? filtrarMontoMax;
+    private bool mostrarOrdenar = false;
+    private bool mostrarFiltrar = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (phoneNumber != null)
+        {
+            user = await UserManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
+            if (user != null)
+            {
+                pasivos = await DbContext.Pasivos.Where(p => p.UsuarioId == user.Id).ToListAsync();
+                pasivosFiltrados = pasivos;
+            }
+            else
+            {
+                Navigation.NavigateTo("/login");
+            }
+        }
+        else
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
+
+    private void VerDetallePasivo(int id)
+    {
+        Navigation.NavigateTo($"/pasivos/ver-detalle/{id}/{phoneNumber}");
+    }
+
+
+    private void ToggleOrdenar()
+    {
+        mostrarOrdenar = !mostrarOrdenar;
+        mostrarFiltrar = false;
+    }
+
+    private void ToggleFiltrar()
+    {
+        mostrarFiltrar = !mostrarFiltrar;
+        mostrarOrdenar = false;
+    }
+
+    private void Ordenar()
+    {
+        pasivosFiltrados = ordenarPor switch
+        {
+            "fechaVencimientoAsc" => pasivosFiltrados.OrderBy(p => p.FechaVencimiento).ToList(),
+            "fechaVencimientoDesc" => pasivosFiltrados.OrderByDescending(p => p.FechaVencimiento).ToList(),
+            "montoAsc" => pasivosFiltrados.OrderBy(p => p.Monto).ToList(),
+            "montoDesc" => pasivosFiltrados.OrderByDescending(p => p.Monto).ToList(),
+            _ => pasivosFiltrados.OrderBy(p => p.Tipo).ToList()
+        };
+        mostrarOrdenar = false;
+    }
+
+    private void FiltrarPorMonto()
+    {
+        pasivosFiltrados = pasivos.Where(p => (!filtrarMontoMin.HasValue || p.Monto >= filtrarMontoMin.Value) &&
+                                               (!filtrarMontoMax.HasValue || p.Monto <= filtrarMontoMax.Value)).ToList();
+        mostrarFiltrar = false;
+    }
+
+    private void Buscar()
+    {
+        if (!string.IsNullOrEmpty(buscarTermino))
+        {
+            pasivosFiltrados = pasivos.Where(p => p.Detalle.Contains(buscarTermino, StringComparison.OrdinalIgnoreCase) ||
+                                                   p.Tipo.Contains(buscarTermino, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+        else
+        {
+            pasivosFiltrados = pasivos;
+        }
+    }
+
+    private void Restablecer()
+    {
+        pasivosFiltrados = pasivos;
+        buscarTermino = "";
+        ordenarPor = "tipo";
+        filtrarMontoMin = null;
+        filtrarMontoMax = null;
+        mostrarOrdenar = false;
+        mostrarFiltrar = false;
+    }
+}

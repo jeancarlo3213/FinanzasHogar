@@ -1,0 +1,88 @@
+﻿@page "/pasivos/ver-detalle/{id:int}/{phoneNumber}"
+@using FinanzasHogar.Models
+@inject ApplicationDbContext DbContext
+@inject NavigationManager Navigation
+
+<h3>Detalle del Pasivo</h3>
+
+@if (pasivo != null)
+{
+    <div class="pasivo-detalle">
+        <p><strong>Tipo:</strong> @pasivo.Tipo</p>
+        <p><strong>Detalle:</strong> @pasivo.Detalle</p>
+        <p><strong>Monto:</strong> @pasivo.Monto.ToString("C")</p>
+        <p><strong>Fecha de Vencimiento:</strong> @pasivo.FechaVencimiento.ToShortDateString()</p>
+        <button class="btn btn-warning" @onclick="EditarPasivo">Editar Pasivo</button>
+        <button class="btn btn-danger" @onclick="MostrarConfirmacion">Eliminar Pasivo</button>
+    </div>
+}
+
+@if (mostrarConfirmacion)
+{
+    <div class="confirmacion">
+        <p>¿Está seguro de que desea eliminar este pasivo?</p>
+        <button class="btn btn-danger" @onclick="EliminarPasivo">Sí</button>
+        <button class="btn btn-secondary" @onclick="OcultarConfirmacion">No</button>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(mensajeError))
+{
+    <div class="alert alert-danger">@mensajeError</div>
+}
+@if (!string.IsNullOrEmpty(mensajeExito))
+{
+    <div class="alert alert-success">@mensajeExito</div>
+}
+
+@code {
+    [Parameter] public int id { get; set; }
+    [Parameter] public string phoneNumber { get; set; }
+
+    private Pasivo pasivo;
+    private bool mostrarConfirmacion = false;
+    private string mensajeError;
+    private string mensajeExito;
+
+    protected override async Task OnInitializedAsync()
+    {
+        pasivo = await DbContext.Pasivos.FindAsync(id);
+        if (pasivo == null)
+        {
+            Navigation.NavigateTo($"/pasivos/ver/{phoneNumber}");
+        }
+    }
+
+    private void EditarPasivo()
+    {
+        Navigation.NavigateTo($"/pasivos/editar/{id}?phoneNumber={phoneNumber}");
+    }
+
+    private void MostrarConfirmacion()
+    {
+        mostrarConfirmacion = true;
+    }
+
+    private void OcultarConfirmacion()
+    {
+        mostrarConfirmacion = false;
+    }
+
+    private async Task EliminarPasivo()
+    {
+        try
+        {
+            if (pasivo != null)
+            {
+                DbContext.Pasivos.Remove(pasivo);
+                await DbContext.SaveChangesAsync();
+                mensajeExito = "Pasivo eliminado exitosamente.";
+                Navigation.NavigateTo($"/pasivos/ver/{phoneNumber}");
+            }
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Ocurrió un error al eliminar el pasivo: {ex.Message}";
+        }
+    }
+}

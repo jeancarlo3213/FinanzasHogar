@@ -1,17 +1,17 @@
-﻿@page "/activos/sumar/{phoneNumber}"
+﻿@page "/pasivos/sumar/{phoneNumber}"
 @using FinanzasHogar.Models
 @inject ApplicationDbContext DbContext
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UserManager<IdentityUser> UserManager
 
-<h3>Sumar Activos</h3>
+<h3>Sumar Pasivos</h3>
 
-<div class="sumar-activos-container">
+<div class="sumar-pasivos-container">
     <div class="form-group">
-        <label>Tipos de Activos</label>
+        <label>Tipos de Pasivos</label>
         <div>
-            @foreach (var tipo in TipoBien.Tipos)
+            @foreach (var tipo in TipoPasivo.Tipos)
             {
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" value="@tipo" @onchange="(e) => UpdateSelectedTipos(e, tipo)">
@@ -19,27 +19,27 @@
                 </div>
             }
         </div>
-        <small class="form-text text-muted">Seleccione uno o más tipos de activos.</small>
+        <small class="form-text text-muted">Seleccione uno o más tipos de pasivos.</small>
         <button class="btn btn-primary mt-2" @onclick="CalcularSuma">Calcular</button>
     </div>
 
     @if (mostrarResultado)
     {
         <div class="result-container alert alert-info mt-3">
-            <h4>Detalle de Activos Seleccionados:</h4>
+            <h4>Detalle de Pasivos Seleccionados:</h4>
             <table class="table table-bordered mt-3">
                 <thead>
                     <tr>
-                        <th>Tipo de Activo</th>
+                        <th>Tipo de Pasivo</th>
                         <th>Valor</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var activo in activosSeleccionados)
+                    @foreach (var pasivo in pasivosSeleccionados)
                     {
                         <tr>
-                            <td>@activo.Tipo</td>
-                            <td>@activo.Valor.ToString("C")</td>
+                            <td>@pasivo.Tipo</td>
+                            <td>@pasivo.Monto.ToString("C")</td>
                         </tr>
                     }
                 </tbody>
@@ -61,7 +61,7 @@
     private decimal sumaTotal = 0;
     private bool mostrarResultado = false;
     private IdentityUser user;
-    private List<Activo> activosSeleccionados = new List<Activo>();
+    private List<Pasivo> pasivosSeleccionados = new List<Pasivo>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -92,22 +92,22 @@
     {
         mostrarResultado = false;
         sumaTotal = 0;
-        activosSeleccionados.Clear();
+        pasivosSeleccionados.Clear();
 
         if (selectedTipos.Count > 0)
         {
-            activosSeleccionados = DbContext.Activos
-                .Where(a => selectedTipos.Contains(a.Tipo) && a.UsuarioId == user.Id)
+            pasivosSeleccionados = DbContext.Pasivos
+                .Where(p => selectedTipos.Contains(p.Tipo) && p.UsuarioId == user.Id)
                 .ToList();
         }
         else
         {
-            activosSeleccionados = DbContext.Activos
-                .Where(a => a.UsuarioId == user.Id)
+            pasivosSeleccionados = DbContext.Pasivos
+                .Where(p => p.UsuarioId == user.Id)
                 .ToList();
         }
 
-        sumaTotal = activosSeleccionados.Sum(a => a.Valor);
+        sumaTotal = pasivosSeleccionados.Sum(p => p.Monto);
         mostrarResultado = true;
     }
 }

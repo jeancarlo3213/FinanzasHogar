@@ -1,0 +1,45 @@
+﻿@page "/pasivos/gestionar/{phoneNumber}"
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<IdentityUser> UserManager
+@inject NavigationManager Navigation
+@inject ApplicationDbContext DbContext
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h3>Gestionar Pasivos</h3>
+
+<div>
+    <button @onclick="AgregarPasivo" class="btn btn-primary">Agregar Pasivo</button>
+    <button @onclick="VerPasivos" class="btn btn-secondary">Ver Pasivos</button>
+</div>
+
+@code {
+    [Parameter] public string phoneNumber { get; set; }
+
+    private IdentityUser user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (phoneNumber != null)
+        {
+            user = await UserManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
+            if (user == null)
+            {
+                Navigation.NavigateTo("/login");
+            }
+        }
+        else
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
+
+    private void AgregarPasivo()
+    {
+        Navigation.NavigateTo($"/pasivos/agregar-pasivo/{phoneNumber}");
+    }
+
+    private void VerPasivos()
+    {
+        Navigation.NavigateTo($"/pasivos/ver/{phoneNumber}");
+    }
+}

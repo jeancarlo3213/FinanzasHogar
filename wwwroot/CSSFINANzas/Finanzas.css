@@ -253,3 +253,42 @@ ul {
         border: 1px solid #28a745;
         cursor: pointer;
     }
+
+/* Estilos adicionales para la página de Sumar Activos */
+.sumar-activos-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.form-group {
+    max-width: 300px;
+}
+
+.result-container {
+    flex-grow: 1;
+    max-width: 400px;
+    background-color: #28a745;
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+    .result-container h4 {
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+.table {
+    background-color: #ffffff;
+    color: black;
+}
+
+    .table th,
+    .table td {
+        text-align: left;
+        padding: 8px;
+    }
